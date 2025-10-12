@@ -1,4 +1,3 @@
 package ru.kiosk.dto;
 
-public final class ReceiptRequest {
-}
+public record ReceiptRequest(ProductDto dto, int quantity) { }

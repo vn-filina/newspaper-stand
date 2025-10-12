@@ -1,4 +1,3 @@
 package ru.kiosk.dto;
 
-public class UpdateRequest {
-}
+public record UpdateRequest(ProductDto key, ProductDto patch) { }
