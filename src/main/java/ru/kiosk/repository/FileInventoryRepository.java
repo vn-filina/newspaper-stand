@@ -17,23 +17,20 @@ public class FileInventoryRepository implements InventoryRepository {
 
     public FileInventoryRepository(String path) {
         this.file = Path.of(path);
-        try {
-            Files.createDirectories(file.getParent());
-        } catch (Exception ignored) {
-        }
+        try { Files.createDirectories(file.getParent()); } catch (Exception ignored) {}
     }
 
-    @Override
-    public void load() {
+    @Override public void load() {
         if (!Files.exists(file)) return;
         try (Reader r = Files.newBufferedReader(file)) {
-            Type listType = new TypeToken<List<Snapshot>>() {
-            }.getType();
+            Type listType = new TypeToken<List<Snapshot>>(){}.getType();
             List<Snapshot> list = gson.fromJson(r, listType);
             storage.clear();
             if (list != null) {
                 for (Snapshot s : list) {
-                    storage.put(s.key, new StockRecord(s.key, s.toDomain(), s.quantity));
+                    Product product = s.toDomain();
+                    ProductKey key = ProductKey.of(product);           // <— ключ восстанавливаем по продукту
+                    storage.put(key, new StockRecord(key, product, s.quantity));
                 }
             }
             System.out.println("Загружено позиций: " + storage.size());
@@ -42,8 +39,7 @@ public class FileInventoryRepository implements InventoryRepository {
         }
     }
 
-    @Override
-    public void save() {
+    @Override public void save() {
         List<Snapshot> list = storage.values().stream().map(Snapshot::from).toList();
         try (Writer w = Files.newBufferedWriter(file)) {
             gson.toJson(list, w);
@@ -52,51 +48,46 @@ public class FileInventoryRepository implements InventoryRepository {
         }
     }
 
-    @Override
-    public Optional<StockRecord> findByKey(ProductKey key) {
+    @Override public Optional<StockRecord> findByKey(ProductKey key) {
         return Optional.ofNullable(storage.get(key));
     }
 
-    @Override
-    public List<StockRecord> findAll() {
+    @Override public List<StockRecord> findAll() {
         return new ArrayList<>(storage.values());
     }
 
-    @Override
-    public void save(StockRecord record) {
+    @Override public void save(StockRecord record) {
         storage.put(record.key(), record);
     }
 
-    @Override
-    public void delete(ProductKey key) {
+    @Override public void delete(ProductKey key) {
         storage.remove(key);
     }
 
-    @Override
-    public void renameKey(ProductKey oldKey, ProductKey newKey) {
+    @Override public void renameKey(ProductKey oldKey, ProductKey newKey) {
         StockRecord rec = storage.remove(oldKey);
         if (rec != null) storage.put(newKey, new StockRecord(newKey, rec.product(), rec.quantity()));
     }
-
     private static final class Snapshot {
-        ProductKey key;
+        // ProductKey key;  // — убрали
         String type, title, issue, author, publisher;
         String releaseDate; // ISO
         Integer pages;
         int quantity;
+
         static Snapshot from(StockRecord r) {
             Snapshot s = new Snapshot();
-            s.key = r.key();
-            s.type = r.product().type();
-            s.title = r.product().title();
-            if (r.product() instanceof Newspaper n) {
+            Product p = r.product();
+            s.type = p.type();
+            s.title = p.title();
+            if (p instanceof Newspaper n) {
                 s.issue = n.issue();
                 s.releaseDate = n.releaseDate().toString();
-            } else if (r.product() instanceof Magazine m) {
+            } else if (p instanceof Magazine m) {
                 s.issue = m.issue();
                 s.releaseDate = m.releaseDate().toString();
                 s.pages = m.pages();
-            } else if (r.product() instanceof Book b) {
+            } else if (p instanceof Book b) {
                 s.author = b.author();
                 s.publisher = b.publisher();
                 s.pages = b.pages();
@@ -104,6 +95,7 @@ public class FileInventoryRepository implements InventoryRepository {
             s.quantity = r.quantity();
             return s;
         }
+
         Product toDomain() {
             return switch (type) {
                 case "newspaper" -> new Newspaper(title, issue, LocalDate.parse(releaseDate));
