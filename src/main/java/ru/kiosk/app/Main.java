@@ -13,7 +13,7 @@ import ru.kiosk.db.DriverManagerConnectionFactory;
 
 public class Main {
     public static void main(String[] args) {
-        String url = AppConfig.jdbcUrl(); // ENV KIOSK_JDBC_URL или -Dkiosk.jdbc.url, иначе SQLite в data/
+        String url = AppConfig.jdbcUrl();
 
         ConnectionFactory cf = new DriverManagerConnectionFactory(url);
         InventoryRepository repo = new JdbcInventoryRepository(cf);
