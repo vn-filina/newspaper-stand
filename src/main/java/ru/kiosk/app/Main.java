@@ -5,21 +5,18 @@ import ru.kiosk.repository.FileInventoryRepository;
 import ru.kiosk.repository.InventoryRepository;
 import ru.kiosk.service.InventoryService;
 import ru.kiosk.ui.ConsoleController;
-import ru.kiosk.repository.JdbcInventoryRepository;
-import ru.kiosk.config.AppConfig;
-import ru.kiosk.db.ConnectionFactory;
-import ru.kiosk.db.DriverManagerConnectionFactory;
-
 
 public class Main {
     public static void main(String[] args) {
-        String url = AppConfig.jdbcUrl(); // ENV KIOSK_JDBC_URL или -Dkiosk.jdbc.url, иначе SQLite в data/
+        String path = "data/inventory.json";
 
-        ConnectionFactory cf = new DriverManagerConnectionFactory(url);
-        InventoryRepository repo = new JdbcInventoryRepository(cf);
+        InventoryRepository repo = new FileInventoryRepository(path);
         InventoryService service = new InventoryService(repo);
         InventoryApi api = new InventoryApi(service);
 
-        new ConsoleController(api).run();
+        repo.load();                                   // загрузка данных
+        Runtime.getRuntime().addShutdownHook(new Thread(repo::save)); // автосохранение
+
+        new ConsoleController(api).run();              // консольное меню
     }
 }
