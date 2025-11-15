@@ -1,0 +1,33 @@
+[
+  {
+    "type": "book",
+    "title": "Python для чайников",
+    "author": "В. Филина",
+    "publisher": "ВГУ",
+    "pages": 10,
+    "quantity": 1
+  },
+  {
+    "type": "magazine",
+    "title": "Красотки",
+    "issue": "99",
+    "releaseDate": "2025-06-06",
+    "pages": 49,
+    "quantity": 88
+  },
+  {
+    "type": "newspaper",
+    "title": "Тайны Звезд",
+    "issue": "76",
+    "releaseDate": "2020-10-27",
+    "quantity": 178
+  },
+  {
+    "type": "book",
+    "title": "SSS",
+    "author": "Pi.Pupup",
+    "publisher": "Moscow",
+    "pages": 142,
+    "quantity": 4
+  }
+]
