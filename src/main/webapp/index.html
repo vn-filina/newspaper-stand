@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Newspaper Stand</title>
+    <style>
+        body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:24px}
+        code{background:#f6f8fa;padding:2px 6px;border-radius:4px}
+        input,button,select{padding:6px 10px;margin:4px 0}
+        .box{border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:12px 0}
+        pre{background:#0b1020;color:#cfe3ff;padding:12px;border-radius:8px;overflow:auto}
+    </style>
+</head>
+<body>
+<h1>Newspaper Stand</h1>
+
+<div class="box">
+    <h3>Быстрые ссылки</h3>
+    <p>Список товаров (JSON): <a href="api/products"><code>/api/products</code></a></p>
+    <p>Эхо-сервлет: <a href="hello"><code>/hello</code></a></p>
+</div>
+
+<div class="box">
+    <h3>Приход (receipt)</h3>
+    <form id="f-receipt">
+        <label>Тип:
+            <select name="type">
+                <option>newspaper</option>
+                <option>magazine</option>
+                <option>book</option>
+            </select>
+        </label><br>
+        <label>Название: <input name="title" value="Городские вести"></label><br>
+        <label>Выпуск (issue): <input name="issue" type="number" value="1"></label><br>
+        <label>Дата релиза: <input name="releaseDate" type="date" value="2025-12-05"></label><br>
+        <label>Количество: <input name="qty" type="number" value="5"></label><br>
+        <button>Добавить</button>
+    </form>
+</div>
+
+<div class="box">
+    <h3>Продажа (sale)</h3>
+    <form id="f-sale">
+        <label>Тип:
+            <select name="type">
+                <option>newspaper</option>
+                <option>magazine</option>
+                <option>book</option>
+            </select>
+        </label><br>
+        <label>Название: <input name="title" value="Городские вести"></label><br>
+        <label>Выпуск (issue): <input name="issue" type="number" value="1"></label><br>
+        <label>Дата релиза: <input name="releaseDate" type="date" value="2025-12-05"></label><br>
+        <label>Количество: <input name="qty" type="number" value="1"></label><br>
+        <button>Продать</button>
+    </form>
+</div>
+
+<div class="box">
+    <h3>Ответ</h3>
+    <pre id="out">...</pre>
+</div>
+
+<script>
+    const out = (x)=>document.getElementById('out').textContent =
+      typeof x === 'string' ? x : JSON.stringify(x,null,2);
+
+    async function post(path, body){
+      const r = await fetch(path, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      return r.json();
+    }
+
+    document.getElementById('f-receipt').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const dto = { type:f.get('type'), title:f.get('title') };
+      if (dto.type !== 'book') { dto.issue = +f.get('issue'); dto.releaseDate = f.get('releaseDate'); }
+      const payload = { dto, quantity:+f.get('qty') };
+      out(await post('api/receipt', payload));
+    });
+
+    document.getElementById('f-sale').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const dto = { type:f.get('type'), title:f.get('title') };
+      if (dto.type !== 'book') { dto.issue = +f.get('issue'); dto.releaseDate = f.get('releaseDate'); }
+      const payload = { dto, quantity:+f.get('qty') };
+      out(await post('api/sale', payload));
+    });
+</script>
+</body>
+</html>
